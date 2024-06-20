@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hexadecimal to Abstract Art</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #f0f0f0;
+      font-family: 'Arial', sans-serif;
+    }
+    canvas {
+      border: 1px solid black;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    input {
+      width: 300px;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .hash-display {
+      font-size: 18px;
+      color: #000;
+      background: rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      word-wrap: break-word;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 300px;
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <input type="text" id="inputText" placeholder="Enter text to hash">
+    <div id="hashDisplay" class="hash-display"></div>
+    <button id="generateBtn">Generate Abstract Art</button>
+    <button id="downloadBtn">Download Image</button>
+  </div>
+  <canvas id="canvas" width="500" height="500"></canvas>
+
+  <script>
+    document.getElementById('generateBtn').addEventListener('click', generateImage);
+    document.getElementById('downloadBtn').addEventListener('click', downloadImage);
+
+    function setup() {
+      noCanvas();
+      const inputText = select('#inputText');
+      inputText.input(updateHash);
+    }
+
+    function updateHash() {
+      const sha256Hash = sha256(this.value());
+      document.getElementById('hashDisplay').innerText = sha256Hash;
+    }
+
+    function hexToR(hex) {
+      return parseInt(hex.substring(0, 2), 16);
+    }
+
+    function hexToG(hex) {
+      return parseInt(hex.substring(2, 4), 16);
+    }
+
+    function hexToB(hex) {
+      return parseInt(hex.substring(4, 6), 16);
+    }
+
+    function generateImage() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const hash = document.getElementById('hashDisplay').innerText;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Generate abstract shapes based on hash
+      for (let i = 0; i < hash.length; i += 6) {
+        const hexSegment = hash.substring(i, i + 6);
+        const x = (parseInt(hash[i], 16) / 15) * canvas.width;
+        const y = (parseInt(hash[i + 1], 16) / 15) * canvas.height;
+        const size = (parseInt(hash[i + 2], 16) / 15) * 50 + 10;
+        const color = `rgb(${hexToR(hexSegment)}, ${hexToG(hexSegment)}, ${hexToB(hexSegment)})`;
+        const rotation = (parseInt(hexSegment, 16) % 360) * (Math.PI / 180);
+        ctx.fillStyle = color;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+        ctx.beginPath();
+        if (i % 2 === 0) {
+          ctx.rect(-size / 2, -size / 2, size, size);
+        } else {
+          ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+        }
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Add more abstract shapes to form a Picasso-type face
+      for (let i = 0; i < 10; i++) {
+        const hexSegment = hash.substring((i + 6) % hash.length, (i + 12) % hash.length);
+        const x = (parseInt(hash[i + 3], 16) / 15) * canvas.width;
+        const y = (parseInt(hash[i + 4], 16) / 15) * canvas.height;
+        const size = (parseInt(hash[i + 5], 16) / 15) * 30 + 10;
+        const color = `rgb(${hexToR(hexSegment)}, ${hexToG(hexSegment)}, ${hexToB(hexSegment)})`;
+        const rotation = (parseInt(hexSegment, 16) % 360) * (Math.PI / 180);
+        ctx.fillStyle = color;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+        ctx.beginPath();
+        if (i % 2 === 0) {
+          ctx.rect(-size / 2, -size / 2, size, size);
+        } else {
+          ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+        }
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function downloadImage() {
+      const canvas = document.getElementById('canvas');
+      const link = document.createElement('a');
+      const date = new Date().toISOString().split('T')[0];
+      const imageName = `art_${date}.png`;
+      link.download = imageName;
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+  </script>
+</body>
+</html>
